@@ -3,10 +3,17 @@ import { JsonRpcProvider } from '@ethersproject/providers';
 import { Wallet } from '@ethersproject/wallet';
 import { MediaFactory } from '../typechain/MediaFactory';
 import Decimal from '../utils/Decimal';
+import { utils } from 'ethers';
 
 async function start() {
   const args = require('minimist')(process.argv.slice(2), {
-    string: ['tokenURI', 'metadataURI', 'contentHash', 'metadataHash'],
+    string: [
+      'tokenURI',
+      'metadataURI',
+      'contentHash',
+      'metadataHash',
+      'gasPrice',
+    ],
   });
 
   if (!args.chainId) {
@@ -27,8 +34,9 @@ async function start() {
   if (!args.creatorShare && args.creatorShare !== 0) {
     throw new Error('--creatorShare creator share is required');
   }
+  const gasPrice = utils.parseUnits(args.gasPrice || '20', 'gwei');
   const path = `${process.cwd()}/.env${
-    args.chainId === 1 ? '.prod' : args.chainId === 4 ? '.dev' : '.local'
+    args.chainId === 1 ? '.prod' : args.chainId === 97 ? '.dev' : '.local'
   }`;
   await require('dotenv').config({ path });
   const provider = new JsonRpcProvider(process.env.RPC_ENDPOINT);
@@ -62,7 +70,8 @@ async function start() {
       prevOwner: Decimal.new(0),
       creator: Decimal.new(args.creatorShare),
       owner: Decimal.new(100 - args.creatorShare),
-    }
+    },
+    { gasPrice }
   );
 
   console.log(`New piece is minted ☼☽`);
