@@ -3,6 +3,8 @@ import { JsonRpcProvider } from '@ethersproject/providers';
 import { Wallet } from '@ethersproject/wallet';
 import { MediaFactory } from '../typechain/MediaFactory';
 import { MarketFactory } from '../typechain/MarketFactory';
+import { BigNumber } from '@ethersproject/bignumber';
+import { utils } from 'ethers';
 
 async function start() {
   const args = require('minimist')(process.argv.slice(2));
@@ -10,8 +12,9 @@ async function start() {
   if (!args.chainId) {
     throw new Error('--chainId chain ID is required');
   }
+  const gasPrice = utils.parseUnits(args.gasPrice || '20', 'gwei');
   const path = `${process.cwd()}/.env${
-    args.chainId === 1 ? '.prod' : args.chainId === 4 ? '.dev' : '.local'
+    args.chainId === 1 ? '.prod' : args.chainId === 97 ? '.dev' : '.local'
   }`;
   await require('dotenv').config({ path });
   const provider = new JsonRpcProvider(process.env.RPC_ENDPOINT);
@@ -31,16 +34,16 @@ async function start() {
   }
 
   console.log('Deploying Market...');
-  const deployTx = await new MarketFactory(wallet).deploy();
+  const deployTx = await new MarketFactory(wallet).deploy({ gasPrice });
   console.log('Deploy TX: ', deployTx.deployTransaction.hash);
   await deployTx.deployed();
   console.log('Market deployed at ', deployTx.address);
   addressBook.market = deployTx.address;
 
   console.log('Deploying Media...');
-  const mediaDeployTx = await new MediaFactory(wallet).deploy(
-    addressBook.market
-  );
+  const mediaDeployTx = await new MediaFactory(
+    wallet
+  ).deploy(addressBook.market, { gasPrice });
   console.log(`Deploy TX: ${mediaDeployTx.deployTransaction.hash}`);
   await mediaDeployTx.deployed();
   console.log(`Media deployed at ${mediaDeployTx.address}`);
@@ -48,7 +51,7 @@ async function start() {
 
   console.log('Configuring Market...');
   const market = MarketFactory.connect(addressBook.market, wallet);
-  const tx = await market.configure(addressBook.media);
+  const tx = await market.configure(addressBook.media, { gasPrice });
   console.log(`Market configuration tx: ${tx.hash}`);
   await tx.wait();
   console.log(`Market configured.`);
