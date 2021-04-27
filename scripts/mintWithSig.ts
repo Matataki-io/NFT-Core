@@ -35,9 +35,11 @@ async function signMintWithSig(
     deadline,
   };
   console.info('f', finalData);
+  const contractName = await media.name();
+
   const result = await wallet._signTypedData(
     {
-      name: 'VICKREY',
+      name: contractName,
       version: '1',
       chainId,
       verifyingContract,
