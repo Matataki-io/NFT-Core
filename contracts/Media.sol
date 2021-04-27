@@ -216,6 +216,17 @@ contract Media is IMedia, ERC721Burnable, ReentrancyGuard {
     }
 
     /**
+     * @notice same as `mint`, but will do a `Transfer` after minting
+     */
+    function mintAndTransfer(MediaData memory data, IMarket.BidShares memory bidShares, address galleryWallet)
+        public
+        nonReentrant
+    {
+        uint256 tokenId = _mintForCreator(msg.sender, data, bidShares);
+        _transfer(msg.sender, galleryWallet, tokenId);
+    }
+
+    /**
      * @notice see IMedia
      */
     function mintWithSig(
@@ -471,7 +482,7 @@ contract Media is IMedia, ERC721Burnable, ReentrancyGuard {
         address creator,
         MediaData memory data,
         IMarket.BidShares memory bidShares
-    ) internal onlyValidURI(data.tokenURI) onlyValidURI(data.metadataURI) {
+    ) internal onlyValidURI(data.tokenURI) onlyValidURI(data.metadataURI) returns(uint256 tokenId) {
         require(data.contentHash != 0, "Media: content hash must be non-zero");
         require(
             _contentHashes[data.contentHash] == false,
@@ -482,7 +493,7 @@ contract Media is IMedia, ERC721Burnable, ReentrancyGuard {
             "Media: metadata hash must be non-zero"
         );
 
-        uint256 tokenId = _tokenIdTracker.current();
+        tokenId = _tokenIdTracker.current();
 
         _safeMint(creator, tokenId);
         _tokenIdTracker.increment();
