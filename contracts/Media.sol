@@ -62,6 +62,9 @@ contract Media is IMedia, ERC721Burnable, ReentrancyGuard {
     bytes32 public constant MINT_WITH_SIG_TYPEHASH =
         0x2952e482b8e2b192305f87374d7af45dc2eafafe4f50d26a0c02e90f2fdbe14b;
 
+    bytes32 public constant MINT_AND_TRANFER_WITH_SIG_TYPEHASH =
+        keccak256("MintWithSig(bytes32 contentHash,bytes32 metadataHash,uint256 creatorShare,uint256 nonce,address to,uint256 deadline)");
+
     // Mapping from address to token id to permit nonce
     mapping(address => mapping(uint256 => uint256)) public permitNonces;
 
@@ -268,6 +271,53 @@ contract Media is IMedia, ERC721Burnable, ReentrancyGuard {
         );
 
         _mintForCreator(recoveredAddress, data, bidShares);
+    }
+
+    /**
+     * @notice same as `mintWithSig`, but will do a `Transfer` after minting
+     */
+    function mintAndTransferWithSig(
+        address creator,
+        MediaData memory data,
+        IMarket.BidShares memory bidShares,
+        address to,
+        EIP712Signature memory sig
+    ) public nonReentrant {
+        require(
+            sig.deadline == 0 || sig.deadline >= block.timestamp,
+            "Media: mintWithSig expired"
+        );
+
+        bytes32 domainSeparator = _calculateDomainSeparator();
+
+        bytes32 digest =
+            keccak256(
+                abi.encodePacked(
+                    "\x19\x01",
+                    domainSeparator,
+                    keccak256(
+                        abi.encode(
+                            MINT_AND_TRANFER_WITH_SIG_TYPEHASH,
+                            data.contentHash,
+                            data.metadataHash,
+                            bidShares.creator.value,
+                            mintWithSigNonces[creator]++,
+                            to,
+                            sig.deadline
+                        )
+                    )
+                )
+            );
+
+        address recoveredAddress = ecrecover(digest, sig.v, sig.r, sig.s);
+
+        require(
+            recoveredAddress != address(0) && creator == recoveredAddress,
+            "Media: Signature invalid"
+        );
+
+        uint256 tokenId = _mintForCreator(recoveredAddress, data, bidShares);
+        _transfer(recoveredAddress, to, tokenId);
     }
 
     /**
