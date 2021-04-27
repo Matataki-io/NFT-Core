@@ -158,7 +158,7 @@ contract Media is IMedia, ERC721Burnable, ReentrancyGuard {
      */
     constructor(address marketContractAddr)
         public
-        ERC721("VICKREY", "VICKREY")
+        ERC721("MAVEN", "MAVEN")
     {
         marketContract = marketContractAddr;
         _registerInterface(_INTERFACE_ID_ERC721_METADATA);
@@ -630,7 +630,7 @@ contract Media is IMedia, ERC721Burnable, ReentrancyGuard {
                     keccak256(
                         "EIP712Domain(string name,string version,uint256 chainId,address verifyingContract)"
                     ),
-                    keccak256(bytes("VICKREY")),
+                    keccak256(bytes(name())),
                     keccak256(bytes("1")),
                     chainID,
                     address(this)
