@@ -70,6 +70,8 @@ contract Media is IMedia, ERC721Burnable, ReentrancyGuard {
 
     // Mapping from address to mint with sig nonce
     mapping(address => uint256) public mintWithSigNonces;
+    // creator => owner => nonce
+    mapping(address => mapping(address => uint256)) public mintAndTransferWithSigNonces;
 
     /*
      *     bytes4(keccak256('name()')) == 0x06fdde03
@@ -285,7 +287,7 @@ contract Media is IMedia, ERC721Burnable, ReentrancyGuard {
     ) public nonReentrant {
         require(
             sig.deadline == 0 || sig.deadline >= block.timestamp,
-            "Media: mintWithSig expired"
+            "Media: mintAndTransferWithSig expired"
         );
 
         bytes32 domainSeparator = _calculateDomainSeparator();
@@ -301,7 +303,7 @@ contract Media is IMedia, ERC721Burnable, ReentrancyGuard {
                             data.contentHash,
                             data.metadataHash,
                             bidShares.creator.value,
-                            mintWithSigNonces[creator]++,
+                            mintAndTransferWithSigNonces[creator][to]++,
                             to,
                             sig.deadline
                         )
