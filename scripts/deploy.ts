@@ -14,7 +14,7 @@ async function start() {
   }
   const gasPrice = utils.parseUnits(args.gasPrice || '20', 'gwei');
   const path = `${process.cwd()}/.env${
-    args.chainId === 1 ? '.prod' : args.chainId === 97 ? '.dev' : '.local'
+    args.chainId === 1 ? '.prod' : args.chainId === 4 ? '.dev' : '.local'
   }`;
   await require('dotenv').config({ path });
   const provider = new JsonRpcProvider(process.env.RPC_ENDPOINT);
