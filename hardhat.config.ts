@@ -24,6 +24,11 @@ const config: HardhatUserConfig = {
     ],
   },
   networks: {
+    rinkeby: {
+      chainId: 4,
+      url: 'https://eth-rinkeby.alchemyapi.io/v2/' + process.env.ALCHEMY_KEY,
+      timeout: 1000 * 60,
+    },
     bsc_testnet: {
       chainId: 97,
       url: 'https://data-seed-prebsc-1-s1.binance.org:8545/',
