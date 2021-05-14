@@ -26,12 +26,10 @@ async function signMintWithSig(
   data: MintAndTransferWithSig
 ) {
   const deadline = getDeadline(365);
-  const nonce = await media.mintWithSigNonces(wallet.address);
   const finalData = {
     ...data,
     contentHash: '0x' + data.contentHash,
     metadataHash: '0x' + data.metadataHash,
-    nonce,
     deadline,
   };
   console.info('f', finalData);
@@ -49,7 +47,6 @@ async function signMintWithSig(
         { name: 'contentHash', type: 'bytes32' },
         { name: 'metadataHash', type: 'bytes32' },
         { name: 'creatorShare', type: 'uint256' },
-        { name: 'nonce', type: 'uint256' },
         { name: 'to', type: 'address' },
         { name: 'deadline', type: 'uint256' },
       ],

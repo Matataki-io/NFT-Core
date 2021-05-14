@@ -63,15 +63,13 @@ contract Media is IMedia, ERC721Burnable, ReentrancyGuard {
         0x2952e482b8e2b192305f87374d7af45dc2eafafe4f50d26a0c02e90f2fdbe14b;
 
     bytes32 public constant MINT_AND_TRANFER_WITH_SIG_TYPEHASH =
-        keccak256("MintWithSig(bytes32 contentHash,bytes32 metadataHash,uint256 creatorShare,uint256 nonce,address to,uint256 deadline)");
+        keccak256("MintWithSig(bytes32 contentHash,bytes32 metadataHash,uint256 creatorShare,address to,uint256 deadline)");
 
     // Mapping from address to token id to permit nonce
     mapping(address => mapping(uint256 => uint256)) public permitNonces;
 
     // Mapping from address to mint with sig nonce
     mapping(address => uint256) public mintWithSigNonces;
-    // creator => owner => nonce
-    mapping(address => mapping(address => uint256)) public mintAndTransferWithSigNonces;
 
     /*
      *     bytes4(keccak256('name()')) == 0x06fdde03
@@ -204,6 +202,17 @@ contract Media is IMedia, ERC721Burnable, ReentrancyGuard {
         return _tokenMetadataURIs[tokenId];
     }
 
+    function isContentUploaded(bytes32 h) external view returns(bool) {
+        return _contentHashes[h];
+    }
+
+    function isContentUploaded(bytes32[] calldata hashes) external view returns(bool[] memory result) {
+        result = new bool[](hashes.length);
+        for (uint256 i = 0; i < hashes.length; i++) {
+            result[i] = _contentHashes[(hashes[i])];
+        }
+    }
+
     /* ****************
      * Public Functions
      * ****************
@@ -303,7 +312,6 @@ contract Media is IMedia, ERC721Burnable, ReentrancyGuard {
                             data.contentHash,
                             data.metadataHash,
                             bidShares.creator.value,
-                            mintAndTransferWithSigNonces[creator][to]++,
                             to,
                             sig.deadline
                         )
