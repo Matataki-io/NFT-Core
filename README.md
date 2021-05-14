@@ -1,15 +1,11 @@
-# Zora Media Protocol
+# Media Protocol
 
-This repository contains the core contracts that compose the Zora Media Protocol.
+这是 Zora Media 协议的一个 fork 分支。
 
-The protocol aims to provide a universal value system for media.
-
-Further documentation is available at [zora.engineering](https://zora.engineering)
-
-## Table of Contents
+## 目录
 
 - [Whitepaper](#whitepaper)
-- [Architecture](#architecture)
+- [架构](#架构)
   - [Mint](#mint)
   - [Set Bid](#set-bid)
   - [Remove Bid](#remove-bid)
@@ -21,26 +17,24 @@ Further documentation is available at [zora.engineering](https://zora.engineerin
   - [Update Token and Media URI](#update-token-and-media-uri)
   - [Permit](#permit)
   - [Mint with Signature](#mint-with-signature)
-- [Local Development](#Local-Development)
-  - [Install Dependencies](#install-dependencies)
-  - [Compile Contracts](#compile-contracts)
-  - [Start a Local Blockchain](#start-a-local-blockchain)
-  - [Run Tests](#run-tests)
+- [本地开发](#本地开发)
+  - [安装依赖](#安装依赖)
+  - [编译合约](#编译合约)
+  - [部署合约](#部署合约)
 
-## Whitepaper
 
-The whitepaper is available at [zora.engineering](https://zora.engineering/whitepaper)
+## 架构
 
-## Architecture
+> 这里指的是智能合约的架构
 
-This protocol is an extension of the ERC-721 NFT standard, intended to
-provide a unified pool of liquidity in the form of bids in a market for each NFT.
-This protocol refers to NFTs as `Media`.
 
-The protocol's roles and methods interact with the core contracts as follows:
+该协议是 ERC-721 NFT 标准的扩展, 意图为每一个 NFT 创造一个统一的流动性池。
+该协议把 NFTs 当作为 `Media` （媒体）.
+
+该协议的角色和可交互函数图如下:
 ![Architecture Diagram](./architecture.png)
 
-The following structs are defined in the contract and used as parameters for some methods:
+下面是该协议的一些常用的数据结构定义
 
 ```solidity
 // Decimal.D256
@@ -99,9 +93,10 @@ struct EIP712Signature {
 
 ```
 
-### Mint
+### 铸造
 
-At any time, a creator may mint a new piece of media. When a piece is minted, the new media is transferred to the creator and a market is formed.
+作者可以铸造一个 `Media`，铸造成功后，就会把 `Media` 放到 
+`Market` 进行展示。
 
 | **Name**    | **Type**    | **Description**                                                                         |
 | ----------- | ----------- | --------------------------------------------------------------------------------------- |
@@ -110,7 +105,7 @@ At any time, a creator may mint a new piece of media. When a piece is minted, th
 
 ![Mint process flow diagram](./mint.png)
 
-### Set Bid
+### 买家出价 (Set Bid)
 
 Anyone may place a bid on a minted token. By placing a bid, the bidder deposits the currency of their choosing into
 the market contract. Any valid ERC-20 currencies can be used to bid. Note that we strongly recommend that bidders do not bid using a currency that can be rebased, such as [AMPL](https://www.ampleforth.org/), [YAM](https://yam.finance/), or [BASED](https://based.money), as funds can become locked in the Market if the token is rebased.
@@ -122,7 +117,7 @@ the market contract. Any valid ERC-20 currencies can be used to bid. Note that w
 
 ![Set Bid process flow diagram](./setBid.png)
 
-### Remove Bid
+### 买家撤回出价 (Remove Bid)
 
 Once a bid has been set by a bidder, it can be removed. In order to remove a bid from a piece of media, the bidder simply specifies the piece of media that they wish to remove their bid from.
 Note from the process flow diagram above for setting a bid that only one bid can be set a time per bidder per piece of media.
@@ -137,7 +132,7 @@ Note from the process flow diagram above for setting a bid that only one bid can
 
 Any media owner is able to transfer their media to an address of their choosing. This does not alter the market for the media, except to remove the Ask on the piece, if it is present. Its implementation from the standard ERC721 standard is unchanged in this protocol.
 
-### Burn
+### 销毁(Burn)
 
 This protocol allows for media to be burned, if and only if the owner of the media is also the creator. When burned, the `tokenURI` and `metadataURI` of the media are not removed. This means that even though the market becomes inactive, the media is still viewable. Effectively, the media becomes read-only.
 Any bids that were placed on a piece prior to it being burned can still be removed.
@@ -148,7 +143,7 @@ Any bids that were placed on a piece prior to it being burned can still be remov
 
 ![Burn process flow diagram](./burn.png)
 
-### Set Ask
+### 主人定价(Set Ask)
 
 At any time, an owner may set an Ask on their media. The ask serves to automatically fulfill a bid if it satisfies the parameters of the ask. This allows collectors to optionally buy a piece outright, without waiting for the owner to explicitly accept their bid.
 
@@ -159,7 +154,7 @@ At any time, an owner may set an Ask on their media. The ask serves to automatic
 
 ![Set Ask process flow diagram](./setAsk.png)
 
-### Accept Bid
+### 主人接受出价(Accept Bid)
 
 When an owner sees a satisfactory bid, they can accept it and transfer the ownership of the piece to the bidder's recipient. The bid's funds are split according to the percentages defined in the piece's bid shares.
 Note that bids can have a sell-on fee. This fee is to entitle the seller to a piece of the next sale of the media. For example, suppose someone owns a piece with a limited means of promoting it. In this case, it may be favorable to accept a bid from a highly regarded platform for a lower initial capital, but high potential resale fee.
@@ -167,16 +162,10 @@ Since the sell-on fee can be easily avoided by bidders with ill intent, it's sug
 
 | **Name**  | **Type**  | **Description**           |
 | --------- | --------- | ------------------------- |
-| `tokenId` | `uint256` | The tokenID for the media |
-| `bid`     | `Bid`     | The bid to accept         |
+| `tokenId` | `uint256` | Media NFT 的 代币ID |
+| `bid`     | `Bid`     | 接受的出价         |
 
 ![Accept Bid process flow diagram](./acceptBid.png)
-
-### Approve
-
-At any time, the owner of a piece of media is able to approve another address to act on its behalf.
-This implementation is unchanged from the ERC-721 standard. However, approved addresses are now also able to accept bids,
-set asks, update URIs, and burn media (provided the owner is the creator, as above).
 
 ### Update Token and Media URI
 
@@ -231,30 +220,26 @@ If the media has yet to be minted yet, creators are able to permit a third party
 }
 ```
 
-## Local Development
+## 本地开发
 
-The following assumes `node >= 12`
+以下内容假设你的环境里：
 
-### Install Dependencies
+- 安装了 `node >= 12`
+- 安装了 `yarn` (yarn classic) 作为 `npm` 的替代品
+
+### 安装依赖
 
 ```shell script
 yarn
 ```
 
-### Compile Contracts
+### 编译合约
 
 ```shell script
 yarn build
 ```
 
-### Start a Local Blockchain
-
+### 部署合约
 ```shell script
-yarn chain
-```
-
-### Run Tests
-
-```shell script
-yarn test
+yarn deploy --chainId {目标区块链的ID（主网为1，rinkeby 为4) }
 ```
