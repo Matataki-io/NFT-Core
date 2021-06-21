@@ -63,7 +63,9 @@ contract Media is IMedia, ERC721Burnable, ReentrancyGuard {
         0x2952e482b8e2b192305f87374d7af45dc2eafafe4f50d26a0c02e90f2fdbe14b;
 
     bytes32 public constant MINT_AND_TRANFER_WITH_SIG_TYPEHASH =
-        keccak256("MintWithSig(bytes32 contentHash,bytes32 metadataHash,uint256 creatorShare,address to,uint256 deadline)");
+        keccak256(
+            "MintWithSig(bytes32 contentHash,bytes32 metadataHash,uint256 creatorShare,address to,uint256 deadline)"
+        );
 
     // Mapping from address to token id to permit nonce
     mapping(address => mapping(uint256 => uint256)) public permitNonces;
@@ -158,7 +160,7 @@ contract Media is IMedia, ERC721Burnable, ReentrancyGuard {
      */
     constructor(address marketContractAddr)
         public
-        ERC721("MAVEN", "MAVEN")
+        ERC721("Matataki NFT", "MTTKNFT")
     {
         marketContract = marketContractAddr;
         _registerInterface(_INTERFACE_ID_ERC721_METADATA);
@@ -202,11 +204,15 @@ contract Media is IMedia, ERC721Burnable, ReentrancyGuard {
         return _tokenMetadataURIs[tokenId];
     }
 
-    function isContentUploaded(bytes32 h) external view returns(bool) {
+    function isContentUploaded(bytes32 h) external view returns (bool) {
         return _contentHashes[h];
     }
 
-    function isContentUploaded(bytes32[] calldata hashes) external view returns(bool[] memory result) {
+    function isContentUploaded(bytes32[] calldata hashes)
+        external
+        view
+        returns (bool[] memory result)
+    {
         result = new bool[](hashes.length);
         for (uint256 i = 0; i < hashes.length; i++) {
             result[i] = _contentHashes[(hashes[i])];
@@ -232,10 +238,11 @@ contract Media is IMedia, ERC721Burnable, ReentrancyGuard {
     /**
      * @notice same as `mint`, but will do a `Transfer` after minting
      */
-    function mintAndTransfer(MediaData memory data, IMarket.BidShares memory bidShares, address galleryWallet)
-        public
-        nonReentrant
-    {
+    function mintAndTransfer(
+        MediaData memory data,
+        IMarket.BidShares memory bidShares,
+        address galleryWallet
+    ) public nonReentrant {
         uint256 tokenId = _mintForCreator(msg.sender, data, bidShares);
         _transfer(msg.sender, galleryWallet, tokenId);
     }
@@ -542,7 +549,12 @@ contract Media is IMedia, ERC721Burnable, ReentrancyGuard {
         address creator,
         MediaData memory data,
         IMarket.BidShares memory bidShares
-    ) internal onlyValidURI(data.tokenURI) onlyValidURI(data.metadataURI) returns(uint256 tokenId) {
+    )
+        internal
+        onlyValidURI(data.tokenURI)
+        onlyValidURI(data.metadataURI)
+        returns (uint256 tokenId)
+    {
         require(data.contentHash != 0, "Media: content hash must be non-zero");
         require(
             _contentHashes[data.contentHash] == false,
