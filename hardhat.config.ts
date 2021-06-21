@@ -34,6 +34,10 @@ const config: HardhatUserConfig = {
       url: 'https://data-seed-prebsc-1-s1.binance.org:8545/',
       timeout: 1000 * 60,
     },
+    bsc: {
+      chainId: 56,
+      url: 'https://bsc-dataseed.binance.org/',
+    },
   },
   etherscan: {
     // Your API key for Etherscan
